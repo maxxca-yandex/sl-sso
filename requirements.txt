@@ -1,0 +1,5 @@
+sanic
+jinja2
+sanic-ext
+PyJWT
+requests

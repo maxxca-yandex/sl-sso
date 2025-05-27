@@ -1,0 +1,19 @@
+version: "3"
+
+services:
+  mysanic:
+    image: docker-image:latest
+    ports:
+      - "${PORT}:8000"
+    restart: always
+    environment:
+      SECRET: "${SECRET}"
+      JWT_NAME: "${JWT_NAME}"
+      NEXTCLOUD_URL: "${NEXTCLOUD_URL}"
+      TOKEN_DURATION_SEC: "${TOKEN_DURATION_SEC}"
+      DOMAIN: "${DOMAIN}"
+      PYTHONUNBUFFERED: 1
+
+networks:
+  default:
+    driver: bridge
