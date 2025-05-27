@@ -53,16 +53,11 @@ def _do_login(username, password):
         "OCS-APIRequest": "true",
         "Accept": "application/json"
     }
-    proxies = {
-        "http": "http://10.1.1.9:3128",
-        "https": "http://10.1.1.9:3128",
-    }
 
     response = requests.get(
         nextcloud_url,
         auth=HTTPBasicAuth(username, password),
         headers=headers,
-        proxies=proxies,
     )
 
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -87,7 +82,7 @@ def _get_token_dict(login: str) -> dict:
 
     data = {
         "username": login,
-        "exp": int(_st) + app.config.DURATION,
+        "exp": int(_st) + app.config.TOKEN_DURATION_SEC,
         "jti": jti,
         "token_type": "access"
     }
@@ -129,8 +124,10 @@ async def handler(request: Request):
         username = username.lower()  # Fix Case.
         username = username.replace("!", "")  # Admin Active Directory.
 
+        print(f"Try login {username}")
         success = _do_login(username, password)
         if success:
+            print("..Success")
             token = get_jwt(username, request)
 
             res = _return_if_auth(request)
@@ -139,12 +136,13 @@ async def handler(request: Request):
                 token,
                 domain=app.config.DOMAIN,
                 httponly=True,
-                max_age=app.config.DURATION,
+                max_age=app.config.TOKEN_DURATION_SEC,
                 samesite="Strict"
             )
 
             return res
         else:
+            print("..Failed")
             return await render(context={}, status=401)
     elif request.method == "GET":
         return await render(context={}, status=401)
