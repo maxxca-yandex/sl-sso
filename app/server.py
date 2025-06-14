@@ -24,6 +24,30 @@ app.config.TOKEN_DURATION_SEC = int(os.getenv("TOKEN_DURATION_SEC"))
 app.config.DOMAIN = os.getenv("DOMAIN")
 
 
+@app.middleware("response")
+async def prevent_xss(request, response):
+    origin = request.headers.get("origin") or "*"
+
+    r_method = request.method
+    if r_method == "OPTIONS":
+        headers = {
+            "Access-Control-Allow-Methods": "OPTIONS,GET,POST",
+            "Access-Control-Allow-Origin": origin,
+        }
+        response.headers.extend(headers)
+    else:
+        headers = {
+            "Access-Control-Allow-Methods": "OPTIONS,GET,POST",
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Credentials": "true",
+            "Access-Control-Allow-Headers": (
+                "origin, content-type, accept, "
+                "authorization, x-xsrf-token, x-request-id"
+            ),
+        }
+        response.headers.extend(headers)
+
+
 def check_token(request):
     sl_jwt = request.token or request.cookies.get(app.config.JWT)
 
